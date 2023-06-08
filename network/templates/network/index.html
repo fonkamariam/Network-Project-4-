@@ -1,0 +1,180 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+<style>
+  .pad{
+   padding-left: 5px;
+  }
+  .text{
+    resize:none; 
+    height: 100px;
+    width:700 px;
+  }
+  .prev{
+    text-align: left;
+  }
+  .next{
+    text-align: right;
+  }
+  .card{
+    height: 100%; ;
+    width:auto ;
+  }
+
+</style>
+<script>
+  function Save(h){
+    a=document.getElementById(`${h}`)
+    c=document.getElementById(`2${h}`)
+    b=document.getElementById(`1${h}`)
+    all=document.getElementById(`3${h}`)
+    b=b.value
+    fetch(`/edit/${h}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+          text: b
+      })
+    })
+    a.innerHTML=b
+    a.style.fontWeight='bold';
+    a.style.display='block';
+    all.style.display='none';
+    d.style.display='block'
+  }
+  function Edit(h){
+    a=document.getElementById(`${h}`)//text
+    b=document.getElementById(`1${h}`)//textarea
+    c=document.getElementById(`2${h}`)//save
+    d=document.getElementById(`4${h}`)
+    all=document.getElementById(`3${h}`)
+    a.style.display='none';
+    d.style.display='none';
+    all.style.display='block';
+  }
+  
+  function before_like(h){
+    a=document.getElementById(`before_like${h}`)
+    b=document.getElementById(`after_like${h}`)
+    c=document.getElementById(`like${h}`)
+    a.style.display='none'
+    b.style.display='block'
+    fetch(`/like/${h}`, {
+      method: 'PUT',
+    })
+    
+    counter=c.innerHTML;
+    counter++;
+    c.innerHTML=counter
+  }
+ 
+  function after_like(h){
+    a=document.getElementById(`before_like${h}`)
+    b=document.getElementById(`after_like${h}`)
+    c=document.getElementById(`like${h}`)
+    a.style.display='block'
+    b.style.display='none'
+    fetch(`/unlike/${h}`, {
+      method: 'PUT',
+    })
+    
+    counter=c.innerHTML
+    counter--;
+    c.innerHTML=counter
+    
+  }
+    document.addEventListener('DOMContentLoaded', function() {
+      const text= document.getElementById("post")
+           const submitt= document.getElementById("submitbutton")
+           text.addEventListener('keyup',(e)=>{
+               const value= e.currentTarget.value;
+               let result= value.trim();
+               if ( result == "" ){
+                   submitt.disabled=true;
+               }else{
+                   submitt.disabled=false;
+               }
+           });
+     
+     });
+    
+            window.addEventListener( "pageshow", function ( event ) {
+  var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
+  if ( historyTraversal ) {
+     window.location.reload();
+  }
+});
+      
+  </script>
+
+
+{% if user.is_authenticated %}
+                
+    <h1>All Posts</h1>
+    <div class="card">
+    <form  action="{% url 'create' %}" method="post"> 
+      {% csrf_token %}
+        <div class="form-group" >
+          <br>
+          <label for="post">New Post</label>
+          <textarea class="form-control" id="post" name="value" rows="3" cols="8" ></textarea>
+          <br>
+          <input type="submit" id="submitbutton" class="btn btn-primary" disabled="true" value="Post">
+        </div>
+      </form>
+    </div>
+    {% endif %}
+    {% for post in Posts %}
+    <div class="card" row="3">
+      <br>
+      {% if user.is_authenticated %}
+      <a class="nav-link" href="/{{post.owner}}"><strong> {{post.owner}}</strong></a>
+      {%else%}
+      <strong>{{post.owner}}</strong>
+      {% endif %}
+      {% if user == post.owner %}
+      <button id="4{{post.id}}" style="width:min-content" onclick="Edit({{post.id}})" class="btn btn-primary"><strong> Edit </strong></button>
+      {% else %}
+      {% endif %} 
+      <br>
+      <div id="{{post.id}}"><strong>{{post.text}}</strong></div>
+      <div style="display: none;" id="3{{post.id}}">
+      <textarea id="1{{post.id}}" rows="4" cols="80">{{post.text}}</textarea><br>
+      <button onclick="Save({{post.id}})" class="btn btn-primary" id="2{{post.id}}">Save</button>
+      </div>
+      <div>{{post.timestamp}}</div>
+      <?xml version="1.0" encoding="utf-8"?>
+      {% if user.is_authenticated %}
+      {% if post in list %}
+      <svg id="before_like{{post.id}}"style="display: none;" onclick="before_like({{post.id}})"  xmlns="http://www.w3.org/2000/svg" height="30px" width="30px" viewBox="0 0 24 24"><title>Like</title><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585,18.4a2.973,2.973,0,0,1-3.83,0C4.947,16.006,2,11.87,2,8.967a4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,11,8.967a1,1,0,0,0,2,0,4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,22,8.967C22,11.87,19.053,16.006,13.915,20.313Z"/></svg>
+      <svg id="after_like{{post.id}}"  fill="red" onclick="after_like({{post.id}})" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24"><title>Unlike</title><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585"/></svg>
+      <div id="like{{post.id}}" class="pad">{{post.like}}</div>
+      {% else %}
+      <svg id="before_like{{post.id}}" onclick="before_like({{post.id}})"  xmlns="http://www.w3.org/2000/svg" height="30px" width="30px" viewBox="0 0 24 24"><title>Like</title><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585,18.4a2.973,2.973,0,0,1-3.83,0C4.947,16.006,2,11.87,2,8.967a4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,11,8.967a1,1,0,0,0,2,0,4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,22,8.967C22,11.87,19.053,16.006,13.915,20.313Z"/></svg>
+      <svg id="after_like{{post.id}}" style="display: none;" fill="red" onclick="after_like({{post.id}})" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24"><title>Unlike</title><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585"/></svg>
+      <div id="like{{post.id}}" class="pad">{{post.like}}</div>
+      {% endif %}
+      {% else %}
+      <svg id="before_like{{post.id}}" onclick="alert('Please Register first to like')"  xmlns="http://www.w3.org/2000/svg" height="30px" width="30px" viewBox="0 0 24 24"><title>Like</title><path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Zm-3.585,18.4a2.973,2.973,0,0,1-3.83,0C4.947,16.006,2,11.87,2,8.967a4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,11,8.967a1,1,0,0,0,2,0,4.8,4.8,0,0,1,4.5-5.05A4.8,4.8,0,0,1,22,8.967C22,11.87,19.053,16.006,13.915,20.313Z"/></svg>
+      <div id="like{{post.id}}" class="pad">{{post.like}}</div>
+      {% endif %}
+
+      <br>
+    </div>
+      {% endfor %}
+      {% if Posts.has_other_pages %}
+  <ul class="pagination">
+    {% if Posts.has_previous %}
+      <li><a href="?page={{ Posts.previous_page_number }}">Previous</a></li>
+    
+        
+        {% endif %}
+    
+    {% if Posts.has_next %}
+      <li class="next"><a href="?page={{ Posts.next_page_number }}">Next</a></li>
+          {% endif %}
+  </ul>
+{% endif %}
+  
+  
+{% endblock %}
